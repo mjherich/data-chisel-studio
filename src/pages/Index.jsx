@@ -18,8 +18,8 @@ const Index = () => {
     const file = event.target.files[0];
     Papa.parse(file, {
       complete: (results) => {
-        setHeaders(results.data[0]);
-        setData(results.data.slice(1));
+        setHeaders(results.meta.fields || []);
+        setData(results.data);
       },
       header: true,
     });
@@ -42,7 +42,7 @@ const Index = () => {
       }));
 
       setData(newData);
-      setHeaders([...headers, newColumnName]);
+      setHeaders((prevHeaders) => [...prevHeaders, newColumnName]);
       setPrompt('');
       setNewColumnName('');
     } catch (error) {
@@ -98,7 +98,7 @@ const Index = () => {
           </div>
         </div>
 
-        {data.length > 0 && (
+        {data.length > 0 && headers.length > 0 && (
           <div className="bg-white rounded-lg shadow-md overflow-x-auto">
             <Table>
               <TableHeader>
