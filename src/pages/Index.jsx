@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Wand2, Upload } from "lucide-react";
 import Papa from 'papaparse';
-import { OpenAI } from "langchain/llms/openai";
-import { PromptTemplate } from "langchain/prompts";
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage } from "@langchain/core/messages";
 
 const Index = () => {
   const [data, setData] = useState([]);
@@ -29,19 +29,16 @@ const Index = () => {
     if (!prompt || !apiKey || !newColumnName) return;
 
     try {
-      const llm = new OpenAI({ openAIApiKey: apiKey, temperature: 0.7 });
-      const promptTemplate = new PromptTemplate({
-        template: "{instruction}\n\nRow data: {rowData}\n\nGenerate content:",
-        inputVariables: ["instruction", "rowData"],
+      const model = new ChatOpenAI({
+        apiKey: apiKey,
+        modelName: "gpt-3.5-turbo",
+        temperature: 0.7,
       });
 
       const newData = await Promise.all(data.map(async (row) => {
-        const formattedPrompt = await promptTemplate.format({
-          instruction: prompt,
-          rowData: JSON.stringify(row),
-        });
-        const response = await llm.call(formattedPrompt);
-        return { ...row, [newColumnName]: response.trim() };
+        const message = new HumanMessage(`${prompt}\n\nRow data: ${JSON.stringify(row)}\n\nGenerate content:`);
+        const response = await model.invoke([message]);
+        return { ...row, [newColumnName]: response.content.trim() };
       }));
 
       setData(newData);
