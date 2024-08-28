@@ -1,3 +1,4 @@
+import React from 'react';
 import CSVEditor from '../components/CSVEditor';
 
 const Index = () => {
